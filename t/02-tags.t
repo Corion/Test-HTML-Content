@@ -1,12 +1,20 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 27;
+use Test::More tests => 31;
 
 use_ok('Test::HTML::Content');
 
 # Tests for tags
 tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
     "a",{href => "http://www.perl.com" }, "Single attribute");
+tag_ok('<html><a href="http://www.perl.com">Title</a></html>',
+    "A",{href => "http://www.perl.com" }, "Uppercase query finds lowercase tag");
+tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
+    "a",{href => "http://www.perl.com" }, "Lowercase query finds uppercase tag");
+tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
+    "A",{href => "http://www.perl.com" }, "Uppercase query finds uppercase tag");
+tag_ok('<html><a href="http://www.perl.com">Title</a></html>',
+    "a",{href => "http://www.perl.com" }, "Lowercase query finds lowercase tag");
 tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
     "a",{}, "No attributes");
 tag_ok('<html><A href="http://www.perl.com">Title</A></html>',

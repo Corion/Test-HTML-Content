@@ -14,6 +14,5 @@ t/07-errors.link.t
 t/08-errors.comment.t
 t/09-errors.declaration.t
 t/10-errors.text.t
-t/11-tags.text.t
-t/98-examples.t
-t/99-pod.t
+t/11-errors.tags.t
+t/99-Pod.t

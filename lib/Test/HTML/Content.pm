@@ -2,6 +2,7 @@ package Test::HTML::Content;
 
 require 5.005_62;
 use strict;
+use File::Spec;
 
 # we want to stay compatible to 5.5 and use warnings if
 # we can
@@ -32,7 +33,7 @@ use HTML::TokeParser;
   comment_ok no_comment comment_count
   has_declaration no_declaration
   text_ok no_text text_count
-  title_ok 
+  title_ok
   );
 
 $VERSION = '0.05';
@@ -268,6 +269,32 @@ sub tag_count {
   $result;
 };
 
+#sub tag_ok {
+#  my ($HTML,$tag,$attrref,$name) = @_;
+#  unless (defined $name) {
+#     if (! ref $attrref) {
+#       $Test->diag("Usage ambiguity: tag_ok() called without specified tag attributes");
+#       $Test->diag("(I'm defaulting to any attributes)");
+#       $name = $attrref;
+#       $attrref = {};
+#     };
+#  };
+#  my ($count,$seen) = __count_tags($HTML,$tag,$attrref);
+#  my $result = $Test->ok( $count > 0, $name );
+#  __tag_diag($tag,"at least one",$attrref,$seen) unless ($result);
+#  $result;
+#};
+
+use vars qw( $tidy );
+BEGIN{
+  use HTML::Tidy;
+  $tidy = HTML::Tidy::Document->new();
+  $tidy->Create();
+  $tidy->OptSetBool(HTML::Tidy::TidyXhtmlOut, 1);
+  $tidy->OptSetValue( HTML::Tidy::TidyForceOutput, 0 );
+  $tidy->SetErrorFile( File::Spec->devnull );
+};
+
 sub tag_ok {
   my ($HTML,$tag,$attrref,$name) = @_;
   unless (defined $name) {
@@ -278,7 +305,37 @@ sub tag_ok {
        $attrref = {};
      };
   };
-  my ($count,$seen) = __count_tags($HTML,$tag,$attrref);
+
+  my $stat;
+  $tidy->ParseString($HTML);
+  $tidy->CleanAndRepair();
+  ($stat,$HTML) = $tidy->SaveString();
+
+  my $parser;
+  if (0) {
+    require XML::LibXML; XML::LibXML->import;
+    $parser = XML::LibXML->new()->parse_string($HTML);
+  } else {
+    require XML::XPath; XML::XPath->import;
+    require XML::XPath::XMLParser; XML::XPath::XMLParser->import;
+    my $tree = XML::XPath::XMLParser->new( xml => $HTML )->parse();
+    $parser = XML::XPath->new( context => $tree );
+  };
+
+  my $query = lc "//$tag";
+  if ($attrref) {
+    $query .= join( "[\@$_='" . $attrref->{$_} . "']") for sort keys %$attrref
+  };
+  #$Test->diag( "HTML: $HTML");
+  #Test->diag( "Query: $query" );
+  $Test->diag("Find $query");
+  my $nodeset = $parser->find($query);
+  $Test->diag("Nodesize");
+  my $count = $nodeset->size;
+  $Test->diag("Find $query again");
+  my $seen = $parser->find( "//$tag" );
+  $Test->diag("Done");
+  #my ($count,$seen) = __count_tags($HTML,$tag,$attrref);
   my $result = $Test->ok( $count > 0, $name );
   __tag_diag($tag,"at least one",$attrref,$seen) unless ($result);
   $result;
