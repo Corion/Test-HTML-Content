@@ -24,8 +24,7 @@ elsif ($Test::Pod::VERSION < 0.95) {
 }
 else {
   my $blib = File::Spec->catfile(qw(blib lib));
-  my (@directories) = grep { -d } ($blib, 'bin');
-  find(\&wanted, @directories);
+  find(\&wanted, grep { -d $_ } ($blib, 'bin'));
   plan tests => scalar @files;
   foreach my $file (@files) {
     pod_file_ok($file);

@@ -18,9 +18,6 @@ CVS/.*
 _uu$
 \.cvsignore$
 ^\.releaserc$
-^MANIFEST.SKIP$
-^CGI-Wiki-Simple-.*/
-^Releases/
-^PodMaster/
+^Test-HTML-Content-.*/
 .*\.db$
 ^cvstest$
