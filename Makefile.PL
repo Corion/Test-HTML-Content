@@ -10,15 +10,13 @@ WriteMakefile(
               'HTML::TokeParser' => 0.0}, # e.g., Module::Name => 1.1
 );
 
-use vars qw($have_test_inline $have_class_delegation);
+use vars qw($have_test_inline);
 BEGIN {
   eval { require Test::Inline;
-         $have_test_inline = $Test::Inline::VERSION ge '0.15_001'; };
+         $have_test_inline = 1 };
   undef $@;
-  if ($have_test_inline) {
-    print "Good - you have a patched Test::Inline\n";
-  } else {
-    print "Test::Inline 0.15_001 is nice for testing the examples, but not necessary\n"
+  if (! $have_test_inline) {
+    print "Test::Inline is nice for testing the examples, but not necessary\n"
   };
 };
 

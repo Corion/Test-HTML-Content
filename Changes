@@ -1,11 +1,14 @@
 Revision history for Perl extension Test::HTML::Content.
 
 0.05 20030412
-  - Added XPath functionality
-  - Added fallback to old functionality if either XML::LibXML or
-    XML::XPath are unavailable
+  - Added XPath functionality (xpath_ok, no_xpath, xpath_count)
+  - Added fallback to old functionality if neither XML::LibXML nor
+    XML::XPath are available
   - refactored code to have less duplication, at the cost of
-    some functions passed as parameters
+    some functions passed as parameters (this shouldn't bother you,
+    as it is all hidden)
+
+0.04 lost in the void
 
 0.03  Mon Sep 23 2002
   - Fixed Pod (Thanks to Andy Lester)
