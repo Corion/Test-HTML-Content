@@ -16,7 +16,6 @@ t/06-text.t
 t/07-errors.link.t
 t/08-errors.comment.t
 t/09-errors.declaration.t
-t/09-errors.declaration-xpath.t
 t/10-errors.text.t
 t/11-errors.tags.t
 t/12-title.t
