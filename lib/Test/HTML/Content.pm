@@ -3,6 +3,9 @@ package Test::HTML::Content;
 require 5.005_62;
 use strict;
 use File::Spec;
+use Carp qw(carp croak);
+
+use HTML::TokeParser;
 
 # we want to stay compatible to 5.5 and use warnings if
 # we can
@@ -10,24 +13,11 @@ eval 'use warnings' if $] >= 5.006;
 use Test::Builder;
 require Exporter;
 
-use vars qw/@ISA @EXPORT_OK @EXPORT $VERSION/;
+use vars qw/@ISA @EXPORT_OK @EXPORT $VERSION $can_xpath/;
 
 @ISA = qw(Exporter);
 
 use vars qw( $tidy );
-BEGIN{
-  use HTML::Tidy;
-  $tidy = HTML::Tidy::Document->new();
-  $tidy->Create();
-  $tidy->OptSetBool(HTML::Tidy::TidyXhtmlOut, 1);
-  $tidy->OptSetBool( HTML::Tidy::TidyIndentContent, 0 );
-  $tidy->OptSetBool( HTML::Tidy::TidyMark, 0 );
-  $tidy->OptSetBool( HTML::Tidy::TidyBodyOnly, 0 );
-  $tidy->OptSetValue( HTML::Tidy::TidyForceOutput, 0 );
-  $tidy->OptSetValue( HTML::Tidy::TidyIndentSpaces, 0 );
-  $tidy->OptSetValue( HTML::Tidy::TidyWrapLen, 32000 );
-  $tidy->SetErrorFile( File::Spec->devnull );
-};
 
 # DONE:
 # * use Test::Builder;
@@ -50,23 +40,7 @@ $VERSION = '0.05';
 
 my $Test = Test::Builder->new;
 
-# Move into NoXPath
-use HTML::TokeParser;
-
 use vars qw($HTML_PARSER_StripsTags);
-
-BEGIN {
-  # Check whether HTML::Parser is v3 and delivers the comments starting
-  # with the <!--, even though that's implied :
-  my $HTML = "<!--Comment-->";
-  my $p = HTML::TokeParser->new(\$HTML);
-  my ($type,$text) = @{$p->get_token()};
-  if ($text eq "<!--Comment-->") {
-    $HTML_PARSER_StripsTags = 0
-  } else {
-    $HTML_PARSER_StripsTags = 1
-  };
-};
 
 # Cribbed from the Test::Builder synopsis
 sub import {
@@ -99,13 +73,14 @@ sub __match_comment {
 
 sub __count_comments {
   my ($HTML,$comment) = @_;
-  my $parser = __get_node_tree($HTML);
-  return (undef,undef) unless $parser;
-  
+  my $tree;
+  $tree = __get_node_tree($HTML,'//comment()');
+  return (undef,undef) unless ($tree);
+
   my $result = 0;
   my $seen = [];
-
-  foreach my $node ($parser->find('//comment()')->get_nodelist) {
+  
+  foreach my $node ($tree->get_nodelist) {
     my $content = XML::XPath::XMLParser::as_string($node);
     $content =~ s/\A<!--(.*?)-->\Z/$1/gsm;
     push @$seen, $content;
@@ -131,19 +106,22 @@ sub __output_diag {
 };
 
 sub __invalid_html {
+  my ($HTML,$name) = @_;
+  carp "No test name given" unless $name;
+  $Test->ok(0,$name);
   $Test->diag( "Invalid HTML:");
-  $Test->diag(@_);
-  $Test->ok(0);
+  $Test->diag($HTML);
 };
 
 sub comment_ok {
   my ($HTML,$comment,$name) = @_;
   my ($result,$seen) = __count_comments($HTML,$comment);
-  
+
   if (defined $result) {
     __output_diag($result > 0,$comment,"at least one comment","comment",$name,$seen);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
 
   $result;
@@ -156,7 +134,8 @@ sub no_comment {
   if (defined $result) {
     __output_diag($result == 0,$comment,"no comment","comment",$name,$seen);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
 
   $result;
@@ -169,7 +148,8 @@ sub comment_count {
   if (defined $result) {
     __output_diag($result == $count,$comment,"exactly $count comments","comment",$name,$seen);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
 
   return $result;
@@ -186,13 +166,13 @@ sub __match_text {
 
 sub __count_text {
   my ($HTML,$text) = @_;
-  my $parser = __get_node_tree($HTML);
-  return (undef,undef) unless $parser;
+  my $tree = __get_node_tree($HTML,'//text()');
+  return (undef,undef) unless $tree;
 
   my $result = 0;
   my $seen = [];
 
-  foreach my $node ($parser->find('//text()')->get_nodelist) {
+  foreach my $node ($tree->get_nodelist) {
     my $content = XML::XPath::XMLParser::as_string($node);
     push @$seen, $content
       unless $content =~ /\A\r?\n?\Z/sm;
@@ -209,7 +189,8 @@ sub text_ok {
   if (defined $result) {
     __output_diag($result > 0,$text,"at least one text element","text",$name,$seen);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
 
   $result;
@@ -222,7 +203,8 @@ sub no_text {
   if (defined $result) {
     __output_diag($result == 0,$text,"no text elements","text",$name,$seen);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
 
   $result;
@@ -235,8 +217,9 @@ sub text_count {
   if (defined $result) {
     __output_diag($result == $count,$text,"exactly $count elements","text",$name,$seen);
   } else {
-    __invalid_html($HTML);
-  };    
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
+  };
 
   $result;
 };
@@ -271,7 +254,7 @@ sub __match {
       ? XML::XPath::Boolean->True
       : XML::XPath::Boolean->False;
   }
-  
+
   sub XML::XPath::Function::comment {
     my $self = shift;
     my ($node, @params) = @_;
@@ -284,34 +267,49 @@ sub __match {
 };
 
 sub __get_node_tree {
-  my ($userHTML) = @_;
+  my ($userHTML,$query) = @_;
+  
+  croak "No HTML given" unless defined $userHTML;
+  croak "No query given" unless defined $query;
+  
   $tidy->ParseString($userHTML);
   $tidy->CleanAndRepair();
   my ($stat,$HTML) = $tidy->SaveString();
-  
-  my $tree;
-  if ($HTML =~ m!\A\s*\Z!ms) {
-    # invalid HTML
-  } else {  
-    if (0) {
+
+  my ($tree,$result);
+  if ($HTML !~ m!\A\s*\Z!ms) {
+    eval {
       require XML::LibXML; XML::LibXML->import;
       $tree = XML::LibXML->new()->parse_string($HTML);
-    } else {
-      require XML::XPath; XML::XPath->import;
-      require XML::Parser;
-      
-      my $p = XML::Parser->new( ErrorContext => 2, ParseParamEnt => 0, NoLWP => 1 );    
-      $tree = XML::XPath->new( parser => $p, xml => $HTML );
     };
+    unless ($tree) {
+      eval {
+        require XML::XPath; XML::XPath->import;
+        require XML::Parser;
 
-  };
-  $tree;
+        my $p = XML::Parser->new( ErrorContext => 2, ParseParamEnt => 0, NoLWP => 1 );
+        $tree = XML::XPath->new( parser => $p, xml => $HTML );
+      };
+    };
+    undef $tree if $@;
+    
+    if ($tree) {
+      eval { 
+        $result = $tree->find($query);
+        unless ($result) {
+          $result = {};
+          bless $result, 'Test::HTML::Content::EmptyXPathResult';
+        };
+      };
+    };
+  } else { };
+  return $result;
 };
 
 sub __count_tags {
   my ($HTML,$tag,$attrref) = @_;
   $attrref = {} unless defined $attrref;
-  
+
   my $fallback = lc "//$tag";
   my $query = lc "//$tag";
   if ($attrref) {
@@ -332,16 +330,16 @@ sub __count_tags {
       };
     };
   };
-  
-  my $parser = __get_node_tree($HTML);
-  return (undef,undef) unless $parser;
 
-  my $result = $parser->find($query)->size;
+  my $tree = __get_node_tree($HTML,$query);
+  return (undef,undef) unless $tree;
+
+  my $result = $tree->size;
 
   # Collect the nodes we did see for later reference :
   my $seen = [];
-  foreach my $node ($parser->find( $fallback )->get_nodelist) {
-    push @$seen, [ undef, undef, undef, undef, XML::XPath::XMLParser::as_string($node)];
+  foreach my $node (__get_node_tree($HTML,$fallback)->get_nodelist) {
+    push @$seen, XML::XPath::XMLParser::as_string($node);
   };
   return $result,$seen;
 };
@@ -354,7 +352,7 @@ sub __tag_diag {
   $Test->diag("  $_ = " . $attrs->{$_}) for sort keys %$attrs;
   if (@$found) {
     $Test->diag("Got");
-    $Test->diag("  " . $_->[4]) for @$found;
+    $Test->diag("  " . $_) for @$found;
   } else {
     $Test->diag("Got none");
   };
@@ -365,12 +363,17 @@ sub tag_count {
   my ($currcount,$seen) = __count_tags($HTML,$tag,$attrref);
   my $result;
   if (defined $currcount) {
-    $result = $count == $currcount;
-    unless ($Test->ok($result, $name)) {
-      __tag_diag($tag,"exactly $count",$attrref,$seen) ;
+    if ($currcount eq 'skip') {
+      $Test->skip($seen);
+    } else {
+      $result = $count == $currcount;
+      unless ($Test->ok($result, $name)) {
+        __tag_diag($tag,"exactly $count",$attrref,$seen) ;
+      };
     };
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
 
   $result;
@@ -392,7 +395,8 @@ sub tag_ok {
     $result = $Test->ok( $count > 0, $name );
     __tag_diag($tag,"at least one",$attrref,$seen) unless ($result);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
   $result;
 };
@@ -406,9 +410,10 @@ sub no_tag {
     $Test->ok($result,$name);
     __tag_diag($tag,"no",$attrref,$seen) unless ($result);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
-  
+
   $result;
 };
 
@@ -477,7 +482,8 @@ sub has_declaration {
   if (defined $result) {
     __output_diag($result == 1,$declaration,"exactly one declaration","declaration",$name,$seen);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
 
   $result;
@@ -490,10 +496,44 @@ sub no_declaration {
   if (defined $result) {
     __output_diag($result == 0,$declaration,"no declaration","declaration",$name,$seen);
   } else {
-    __invalid_html($HTML);
+    local $Test::Builder::Level = $Test::Builder::Level +1;
+    __invalid_html($HTML,$name);
   };
 
   $result;
+};
+
+BEGIN {
+  # Load the no-XML-variant if our prerequisites aren't there :
+  eval q{ 
+    require XML::XPath;
+    use HTML::Tidy;
+  };
+  $can_xpath = $@ eq '';
+};
+    
+# And install our plain handlers if we have to :
+if ($can_xpath) {
+  # Set up some more stuff :    
+  $tidy = HTML::Tidy::Document->new();
+  $tidy->Create();
+  $tidy->OptSetBool( &HTML::Tidy::TidyXhtmlOut(), 1);
+  $tidy->OptSetBool( &HTML::Tidy::TidyIndentContent(), 0 );
+  $tidy->OptSetBool( &HTML::Tidy::TidyMark(), 0 );
+  $tidy->OptSetBool( &HTML::Tidy::TidyBodyOnly(), 0 );
+  $tidy->OptSetValue( &HTML::Tidy::TidyForceOutput(), 0 );
+  $tidy->OptSetValue( &HTML::Tidy::TidyIndentSpaces(), 0 );
+  $tidy->OptSetValue( &HTML::Tidy::TidyWrapLen(), 32000 );
+  $tidy->SetErrorFile( File::Spec->devnull );
+} else {
+  require Test::HTML::Content::NoXPath;
+  Test::HTML::Content::NoXPath->install;
+};
+
+{
+  package Test::HTML::Content::EmptyXPathResult;
+  sub size { 0 };
+  sub get_nodelist { () };
 };
 
 1;
@@ -543,7 +583,7 @@ Test::HTML::Content - Perl extension for testing HTML output
 
   # REs also can be used for substrings in comments
   comment_ok($HTML,qr"[hH]idden\s+mess");
-  
+
 =for example end
 
 =head1 DESCRIPTION

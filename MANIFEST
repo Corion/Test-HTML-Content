@@ -17,6 +17,8 @@ t/09-errors.declaration.t
 t/09-errors.declaration-xpath.t
 t/10-errors.text.t
 t/11-errors.tags.t
+t/12-title.t
+t/13-xpath-gracefull-errors.t
 t/99-Pod.t
 t/embedded-Test-HTML-Content.t
 t/embedded-Test-HTML-Content-NoXPath.t

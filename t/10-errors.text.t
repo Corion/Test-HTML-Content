@@ -10,60 +10,28 @@ if ($@) {
   plan skip_all => "Test::Builder::Tester required for testing error messages";
 }
 
-plan tests => 6;
+plan tests => 1+1*2;
 
 use_ok('Test::HTML::Content');
 
 # Test that each exported function fails as documented
 
-test_out("not ok 1 - Link failure (no links)");
-test_fail(+4);
-test_diag("Expected to find at least one <a> tag(s) matching",
-          "  href = http://www.perl.com",
-          "Got none");
-link_ok("","http://www.perl.com","Link failure (no links)");
-test_test("Finding no link works");
+sub run_tests {
+  test_out("not ok 1 - Text failure (empty document)");
+  test_fail(+1);
+  text_ok("","Perl","Text failure (empty document)");
 
-test_out("not ok 1 - Link failure (two links that don't match)");
-test_fail(+6);
-test_diag("Expected to find at least one <a> tag(s) matching",
-          "  href = http://www.perl.com",
-          "Got",
-          "  <a href='http://www.foo.com'>",
-          "  <a href='index.html'>");
-link_ok("<a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",
-        "http://www.perl.com","Link failure (two links that don't match)");
-test_test("Finding no link returns all other links");
+  no warnings 'once';
+  if ($Test::HTML::Content::can_xpath) {
+    test_diag( 'Invalid HTML:', "" );
+  } else {
+    test_diag( 'No text found at all', "Expected at least one text element like 'Perl'" );
+  };
 
-test_out("not ok 1 - Link failure (two links shouldn't exist do)");
-test_fail(+6);
-test_diag("Expected to find no <a> tag(s) matching",
-          "  href = (?-xism:.)",
-          "Got",
-          "  <a href='http://www.foo.com'>",
-          "  <a href='index.html'>");
-no_link("<a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",
-        qr".","Link failure (two links shouldn't exist do)");
-test_test("Finding a link where one should be returns all other links");
+  test_test("Empty document gets reported");
+};
 
-test_out("not ok 1 - Link failure (too few links)");
-test_fail(+6);
-test_diag("Expected to find exactly 3 <a> tag(s) matching",
-          "  href = (?-xism:.)",
-          "Got",
-          "  <a href='http://www.foo.com'>",
-          "  <a href='index.html'>");
-link_count("<a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",qr".",3,"Link failure (too few links)");
-test_test("Diagnosing too few links works");
-
-test_out("not ok 1 - Link failure (too many links)");
-test_fail(+8);
-test_diag("Expected to find exactly 3 <a> tag(s) matching",
-          "  href = (?-xism:.)",
-          "Got",
-          "  <a href='http://www.bar.com'>",
-          "  <a href='http://www.dot.com'>",
-          "  <a href='http://www.foo.com'>",
-          "  <a href='index.html'>");
-link_count("<a href='http://www.bar.com'>bar</a><a href='http://www.dot.com'>.</a><a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",qr".",3,"Link failure (too many links)");
-test_test("Diagnosing too many links works");
+run_tests;
+require Test::HTML::Content::NoXPath;
+Test::HTML::Content::NoXPath->install;
+run_tests;

@@ -75,9 +75,9 @@ BEGIN {
 
     ];
 
-  my $count = 19 + 24 + 12;
-  $count += @{$cases_2{$_}} / 3 for (keys %cases_2);
-  $count += @{$cases_3{$_}} / 4 for (keys %cases_3);
+  my $count = 1+ (18 + 24 + 12)*2;
+  $count += (@{$cases_2{$_}} / 3)*2 for (keys %cases_2);
+  $count += (@{$cases_3{$_}} / 4)*2 for (keys %cases_3);
 
   plan( tests => $count );
 };
@@ -86,8 +86,9 @@ sub run_case {
   my ($count,$methods) = @_;
   my $method;
   for $method (sort keys %$methods) {
-    while (@{$methods->{$method}}) {
-      my (@params) = splice @{$methods->{$method}}, 0, $count;
+    my @cases = @{$methods->{$method}};
+    while (@cases) {
+      my (@params) = splice @cases, 0, $count;
       my $outcome = pop @params;
       my ($visual);
       ($visual = $method) =~ tr/_/ /;
@@ -98,113 +99,120 @@ sub run_case {
   };
 };
 
-run_case( 3, \%cases_2 );
-run_case( 4, \%cases_3 );
+sub run_tests {
+  run_case( 3, \%cases_2 );
+  run_case( 4, \%cases_3 );
 
-my ($count,$seen);
-($count,$seen) = Test::HTML::Content::__count_tags->("<html></html>","a",{href => "http://www.perl.com"});
-is($count, 0,"Counting tags 1");
-is(@$seen, 0,"Checking possible candidates");
-($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.python.org'>Perl</a></html>","a",{href => "http://www.perl.com"});
-is($count, 0,"Counting tags 2");
-is(@$seen, 1,"Checking possible candidates");
-($count,$seen) = Test::HTML::Content::__count_tags->("<html><b href='http://www.python.org'>Perl</b></html>","a",{href => "http://www.perl.com"});
-is($count, 0,"Counting tags 3");
-is(@$seen, 0,"Checking possible candidates");
-($count,$seen) = Test::HTML::Content::__count_tags->("<html><b href='http://www.perl.com'>Perl</b></html>","a",{href => "http://www.perl.com"});
-is($count, 0,"Counting tags 4");
-is(@$seen, 0,"Checking possible candidates");
+  my ($count,$seen);
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><body>foo</body></html>","a",{href => "http://www.perl.com"});
+  is($count, 0,"Counting tags 1");
+  is(@$seen, 0,"Checking possible candidates");
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.python.org'>Perl</a></html>","a",{href => "http://www.perl.com"});
+  is($count, 0,"Counting tags 2");
+  is(@$seen, 1,"Checking possible candidates");
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><b href='http://www.python.org'>Perl</b></html>","a",{href => "http://www.perl.com"});
+  is($count, 0,"Counting tags 3");
+  is(@$seen, 0,"Checking possible candidates");
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><b href='http://www.perl.com'>Perl</b></html>","a",{href => "http://www.perl.com"});
+  is($count, 0,"Counting tags 4");
+  is(@$seen, 0,"Checking possible candidates");
 
-($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com'>Perl</a></html>","a",{href => "http://www.perl.com"});
-is($count, 1,"Counting tags 6");
-is(@$seen, 1,"Checking possible candidates");
-($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com' alt='click here'>Perl</a></html>","a",{href => "http://www.perl.com"});
-is($count, 1,"Counting tags 7");
-is(@$seen, 1,"Checking possible candidates");
-($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com' alt=\"don't click here\">Perl</a><a href='http://www.perl.com'>Perl</a></html>","a",{href => "http://www.perl.com", alt => undef});
-is($count, 1,"Counting tags 8");
-is(@$seen, 2,"Checking possible candidates");
-($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com' alt=\"don't click here\">Perl</a><a href='http://www.perl.com'>Perl</a></html>","a",{href => "http://www.perl.com"});
-is($count, 2,"Counting tags 9");
-is(@$seen, 2,"Checking possible candidates");
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com'>Perl</a></html>","a",{href => "http://www.perl.com"});
+  is($count, 1,"Counting tags 6");
+  is(@$seen, 1,"Checking possible candidates");
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com' alt='click here'>Perl</a></html>","a",{href => "http://www.perl.com"});
+  is($count, 1,"Counting tags 7");
+  is(@$seen, 1,"Checking possible candidates");
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com' alt=\"don't click here\">Perl</a><a href='http://www.perl.com'>Perl</a></html>","a",{href => "http://www.perl.com", alt => undef});
+  is($count, 1,"Counting tags 8");
+  is(@$seen, 2,"Checking possible candidates");
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com' alt=\"don't click here\">Perl</a><a href='http://www.perl.com'>Perl</a></html>","a",{href => "http://www.perl.com"});
+  is($count, 2,"Counting tags 9");
+  is(@$seen, 2,"Checking possible candidates");
 
-($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com' alt=\"don't click here\">Perl</a><p><b><a href='http://www.perl.com'>Perl</a></b></p></html>","a",{href => "http://www.perl.com"});
-is($count, 2,"Counting tags 10");
-is(@$seen, 2,"Checking possible candidates");
+  ($count,$seen) = Test::HTML::Content::__count_tags->("<html><a href='http://www.perl.com' alt=\"don't click here\">Perl</a><p><b><a href='http://www.perl.com'>Perl</a></b></p></html>","a",{href => "http://www.perl.com"});
+  is($count, 2,"Counting tags 10");
+  is(@$seen, 2,"Checking possible candidates");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html></html>" => "foo" );
-is($count,0,"Counting comments 0");
-is(@$seen,0,"Counting possible candidates 0");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html></html>" => "foo" );
+  is($count,0,"Counting comments 0");
+  is(@$seen,0,"Counting possible candidates 0");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html>foo</html>" => "foo" );
-is($count,0,"Counting comments 1");
-is(@$seen,0,"Counting possible candidates 1");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html>foo</html>" => "foo" );
+  is($count,0,"Counting comments 1");
+  is(@$seen,0,"Counting possible candidates 1");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- foo --></html>" => "foo" );
-is($count,1,"Counting comments 2");
-is(@$seen,1,"Counting possible candidates 2");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- foo --></html>" => "foo" );
+  is($count,1,"Counting comments 2");
+  is(@$seen,1,"Counting possible candidates 2");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- foo bar --></html>" => "foo" );
-is($count,0,"Counting comments 3");
-is(@$seen,1,"Counting possible candidates 3");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- foo bar --></html>" => "foo" );
+  is($count,0,"Counting comments 3");
+  is(@$seen,1,"Counting possible candidates 3");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- bar foo --></html>" => "foo" );
-is($count,0,"Counting comments 4");
-is(@$seen,1,"Counting possible candidates 4");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- bar foo --></html>" => "foo" );
+  is($count,0,"Counting comments 4");
+  is(@$seen,1,"Counting possible candidates 4");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- bar foo --></html>" => "foo" );
-is($count,0,"Counting comments 5");
-is(@$seen,1,"Counting possible candidates 5");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- bar foo --></html>" => "foo" );
+  is($count,0,"Counting comments 5");
+  is(@$seen,1,"Counting possible candidates 5");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- foo --></html>" => "foo " );
-is($count,1,"Counting comments 6");
-is(@$seen,1,"Counting possible candidates 6");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- foo --></html>" => "foo " );
+  is($count,1,"Counting comments 6");
+  is(@$seen,1,"Counting possible candidates 6");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- bar foo --></html>" => qr"foo" );
-is($count,1,"Counting comments 7");
-is(@$seen,1,"Counting possible candidates 7");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!-- bar foo --></html>" => qr"foo" );
+  is($count,1,"Counting comments 7");
+  is(@$seen,1,"Counting possible candidates 7");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!--foo--></html>" => "foo" );
-is($count,1,"Counting comments 8");
-is(@$seen,1,"Counting possible candidates 8");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!--foo--></html>" => "foo" );
+  is($count,1,"Counting comments 8");
+  is(@$seen,1,"Counting possible candidates 8");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!--foo--><!--foo--></html>" => "foo" );
-is($count,2,"Counting comments 9");
-is(@$seen,2,"Counting possible candidates 9");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!--foo--><!--foo--></html>" => "foo" );
+  is($count,2,"Counting comments 9");
+  is(@$seen,2,"Counting possible candidates 9");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!--foo--><!--foo--><!--foo--></html>" => "foo" );
-is($count,3,"Counting comments 10");
-is(@$seen,3,"Counting possible candidates 10");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!--foo--><!--foo--><!--foo--></html>" => "foo" );
+  is($count,3,"Counting comments 10");
+  is(@$seen,3,"Counting possible candidates 10");
 
-($count,$seen) = Test::HTML::Content::__count_comments( "<html><!--foo--><!--bar--><!--foo--></html>" => "foo" );
-is($count,2,"Counting comments 11");
-is(@$seen,3,"Counting possible candidates 11");
+  ($count,$seen) = Test::HTML::Content::__count_comments( "<html><!--foo--><!--bar--><!--foo--></html>" => "foo" );
+  is($count,2,"Counting comments 11");
+  is(@$seen,3,"Counting possible candidates 11");
 
-($count,$seen) = Test::HTML::Content::__count_text( "<html></html>" => "foo" );
-is($count,0,"Counting text occurrences 0");
-is(@$seen,0,"Counting possible candidates 0");
+  ($count,$seen) = Test::HTML::Content::__count_text( "<html></html>" => "foo" );
+  is($count,0,"Counting text occurrences 0");
+  is(@$seen,0,"Counting possible candidates 0");
 
-($count,$seen) = Test::HTML::Content::__count_text( "<html>foo</html>" => "foo" );
-is($count,1,"counting text occurrences 1");
-is(@$seen,1,"Counting possible candidates 1");
+  ($count,$seen) = Test::HTML::Content::__count_text( "<html>foo</html>" => "foo" );
+  is($count,1,"counting text occurrences 1");
+  is(@$seen,1,"Counting possible candidates 1");
 
-($count,$seen) = Test::HTML::Content::__count_text( "<html><!-- foo --></html>" => "foo" );
-is($count,0,"counting text occurrences 2");
-is(@$seen,0,"Counting possible candidates 2");
+  ($count,$seen) = Test::HTML::Content::__count_text( "<html><!-- foo --></html>" => "foo" );
+  is($count,0,"counting text occurrences 2");
+  is(@$seen,0,"Counting possible candidates 2");
 
-# This test disabled, as it is not consistent between XPath and NoXPath...
-#($count,$seen) = Test::HTML::Content::__count_text( "<html><head></head><body><p> <!-- foo bar --> </p></body></html>" => "foo" );
-#is($count,0,"counting text occurrences 3");
-#is(@$seen,2,"Counting possible candidates 3");
+  # This test disabled, as it is not consistent between XPath and NoXPath...
+  #($count,$seen) = Test::HTML::Content::__count_text( "<html><head></head><body><p> <!-- foo bar --> </p></body></html>" => "foo" );
+  #is($count,0,"counting text occurrences 3");
+  #is(@$seen,2,"Counting possible candidates 3");
 
-($count,$seen) = Test::HTML::Content::__count_text( "<html>foo<!-- bar foo --> bar</html>" => "foo" );
-is($count,1,"counting text occurrences 4");
-is(@$seen,2,"Counting possible candidates 4");
+  ($count,$seen) = Test::HTML::Content::__count_text( "<html>foo<!-- bar foo --> bar</html>" => "foo" );
+  is($count,1,"counting text occurrences 4");
+  is(@$seen,2,"Counting possible candidates 4");
 
-($count,$seen) = Test::HTML::Content::__count_text( "<html>f<!-- bar foo -->o<!-- bar -->o</html>" => "foo" );
-is($count,0,"counting text occurrences 5");
-is(@$seen,3,"Counting possible candidates 5");
+  ($count,$seen) = Test::HTML::Content::__count_text( "<html>f<!-- bar foo -->o<!-- bar -->o</html>" => "foo" );
+  is($count,0,"counting text occurrences 5");
+  is(@$seen,3,"Counting possible candidates 5");
 
-($count,$seen) = Test::HTML::Content::__count_text( "<html>Hello foo World</html>" => qr"foo" );
-is($count,1,"Checking RE for text 6");
-is(@$seen,1,"Counting possible candidates 6");
+  ($count,$seen) = Test::HTML::Content::__count_text( "<html>Hello foo World</html>" => qr"foo" );
+  is($count,1,"Checking RE for text 6");
+  is(@$seen,1,"Counting possible candidates 6");
+};
+
+run_tests;
+require Test::HTML::Content::NoXPath;
+Test::HTML::Content::NoXPath->install;
+run_tests;
