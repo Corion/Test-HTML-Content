@@ -31,7 +31,7 @@ BEGIN {
     for qw( __dwim_compare __output_diag __invalid_html );
 };
 
-@exports = qw( __match_comment __count_comments __match_text __count_text 
+@exports = qw( __match_comment __count_comments __match_text __count_text
                __match __count_tags __match_declaration __count_declarations );
 
 sub __match_comment {
@@ -114,7 +114,7 @@ sub __match {
 sub __count_tags {
   my ($HTML,$tag,$attrref) = @_;
   $attrref = {} unless defined $attrref;
-  return ('skip','XML::XPath or HTML::Tidy not loaded') 
+  return ('skip','XML::XPath or HTML::Tidy not loaded')
     if exists $attrref->{_content};
 
   my $result = 0;
@@ -169,7 +169,7 @@ sub __count_declarations {
   return $result, $seen;
 };
 
-sub install {  
+sub install {
   for (@exports) {
     no strict 'refs';
     *{"Test::HTML::Content::$_"} = *{"Test::HTML::Content::NoXPath::$_"};
@@ -187,43 +187,13 @@ Test::HTML::Content::NoXPath - HTML::TokeParser fallback for Test::HTML::Content
 
 =head1 SYNOPSIS
 
-  use Test::HTML::Content( tests => 10 );
-
 =for example begin
 
-  $HTML = "<html><body>
-           <img src='http://www.perl.com/camel.png' alt='camel'>
-           <a href='http://www.perl.com'>Perl</a>
-           <img src='http://www.perl.com/camel.png' alt='more camel'>
-           <!--Hidden message--></body></html>";
-
-  link_ok($HTML,"http://www.perl.com","We link to Perl");
-  no_link($HTML,"http://www.pearl.com","We have no embarassing typos");
-  link_ok($HTML,qr"http://[a-z]+\.perl.com","We have a link to perl.com");
-
-  tag_ok($HTML,"img", {src => "http://www.perl.com/camel.png"},
-                        "We have an image of a camel on the page");
-  tag_count($HTML,"img", {src => "http://www.perl.com/camel.png"}, 2,
-                        "In fact, we have exactly two camel images on the page");
-  no_tag($HTML,"blink",{}, "No annoying blink tags ..." );
-
-  # We can check the textual contents
-  text_ok($HTML,"Perl");
-
-  # We can also check the contents of comments
-  comment_ok($HTML,"Hidden message");
-
-  # Advanced stuff
-
-  # Using a regular expression to match against
-  # tag attributes - here checking there are no ugly styles
-  no_tag($HTML,"p",{ style => qr'ugly$' }, "No ugly styles" );
-
-  # REs also can be used for substrings in comments
-  comment_ok($HTML,qr"[hH]idden\s+mess");
-
+  # This module is implicitly loaded by Test::HTML::Content
+  # if XML::XPath or HTML::Tidy::Simple are unavailable.
+  
 =for example end
-
+  
 =head1 DESCRIPTION
 
 This is the module that gets loaded when Test::HTML::Content

@@ -14,49 +14,102 @@ use vars qw/@ISA $VERSION /;
 
 @ISA = qw(Exporter);
 
-use vars qw( @options %can );
+use vars qw( @options %can $tidyprog );
 
 $VERSION = '0.01';
 
 BEGIN {
   eval q{ use HTML::Tidy };
   $can{module} = $@ eq '';
+  
+  $tidyprog = ($^W =~ /mswin/i) ? "tidy.exe" : "tidy";
 };
 
 sub import {
   my $module = shift;
-  @options = @_;
   
-  my $envsep = $^O =~ /win32/i ? ";" : ":";
+  # Only initialize if we haven't already initialized
   if (scalar @options == 0) {
-    @options = (
-      namespace => 'HTML::Tidy',
-      path => [ split $envsep, $ENV{PATH} ],
-    );
+    @options = @_;
+
+    my $envsep = $^O =~ /win32/i ? ";" : ":";
+    if (scalar @options == 0) {
+      @options = (
+        namespace => 'HTML::Tidy',
+        program => $tidyprog,
+        path => [ split $envsep, $ENV{PATH} ],
+      );
+    };
   };
 };
 
 sub new {
   my ($class,@instance_options) = @_;
-  my $self = { options => [ scalar @instance_options ? @instance_options : @options ] };
-  
+  croak "Odd number of arguments passed to HTML::Tidy::Simple constructor" 
+    unless scalar @instance_options % 2 == 0;
+    
+  my $self = { options => {}, order => [], tidyprog => $tidyprog };
   bless $self,$class;
+
+  # Now filter out the non-code options
+  my @order = @instance_options || @options;
+  while (my ($name,$params) = splice @order,0,2) {
+    if ($name eq 'tidyprog') {
+      $self->tidyprog($params)
+    } else {
+      $self->method($name,$params);
+    };
+  };
+  
   $self;
+};
+
+sub order {
+  my ($self,@new_order) = @_;
+  my @result = @{$self->{order}};
+  if (scalar @_ > 1) {
+    $self->{order} = [ @new_order ];
+  };
+  return @result;
+};
+
+sub method {
+  my ($self, $method, $value) = @_;
+  my $result = $self->{options}->{$method};
+  if (scalar @_ == 3) {
+    push @{$self->{order}}, $method
+      unless exists $self->{options}->{$method};
+    $self->{options}->{$method} = $value;
+  };
+  return $result;
+};
+
+sub tidyprog {
+  my ($self,$value) = @_;
+  my $result = $self->{tidyprog};
+  if (scalar @_ > 1) {
+    $self->{tidyprog} = $value;
+  };
+  return $result;
 };
 
 sub tidy {
   my ($self,$HTML) = @_;
-  my @order = @{$self->{options}};
-  while (my ($name,$params) = splice @order,0,2) {
+  my @order = $self->order;
+  croak "There is no method I know to clean HTML"
+    unless @order;
+  my @tried;
+  foreach my $name (@order) {
+    my $params = $self->method($name);
     no strict 'refs';
     my $result;
+    push @tried, "$name ($params)";
     eval {
-      #print "Trying tidy_$name\n";
       $result = &{"tidy_$name"}( $self, $HTML, $params );
     };
     return $result if defined $result;
   };
-  croak __PACKAGE__ . ": Could not find a cleanup routine";
+  croak __PACKAGE__ . ": Could not find a cleaning routine. I tried\n" . join "\n", (@tried);
 };
 
 sub tidy_tidy {
@@ -67,20 +120,20 @@ sub tidy_tidy {
   binmode $fh;
   print $fh $HTML;
   close $fh;
-  
+
   my $result = system( $program, @args, $tempfile );
-  
+
   unlink $tempfile
     or warn "Couldn't remove tempfile '$tempfile' : $!";
-  
+
   return $result;
 };
 
 sub tidy_search {
   my ($self,$HTML,$path) = @_;
-  my ($prog) = map {} @$path;
+  my ($prog) = map { -x File::Spec->catfile( $_, 'tidy' ) ? File::Spec->catfile( $_, 'tidy' ) : () } @$path;
   die "'tidy' not found in ".join(" ",@$path) unless $prog;
-  $self->tidy($HTML,$prog)
+  $self->tidy_tidy($HTML,$prog)
 };
 
 sub tidy_namespace {
@@ -126,7 +179,7 @@ HTML::Tidy::Simple - Simplicistic wrapper around HTML Tidy
   use HTML::Tidy::Simple( search => [ qw( /bin /usr/bin )]);
 
   # or specify where tidy resides
-  use HTML::Tidy::Simple( tidy => '/path/to/tidy' );
+  use HTML::Tidy::Simple( tidy => '/path/to/my_personal_tidy' );
 
   # or exclusively apply the HTML::Tidy module :
   use HTML::Tidy::Simple( namespace => 'HTML::Tidy' );
@@ -153,22 +206,21 @@ to be reconfigured after import time.
 
 The HTML::Tidy module is quite unperlish, as it contains no pod
 and no examples, and is not on CPAN, which make incorporating it
-into other modules/programs a bit harder. 
+into other modules/programs a bit harder.
 
-It is also written in 
-C++, so using that module will also require a working C++ 
+It is also written in
+C++, so using that module will also require a working C++
 compiler, something which is also not available everywhere Perl
-is available. In fact, installing HTML::Tidy under Win32 was
-easier than under Linux, where I gave up after the third set
-of missing prerequisite libraries.
-
-Tidylib also has some more prerequisites, like AutoConf, Automaker
-and some C(++)? libraries, which make installing it even harder
-resp. more tedious if you don't have a package system that
-provides these as dependencies.
+is available. 
 
 So, as long as you can get hold of a binary for the C<tidy> program,
 it's easier to use that one.
+
+=head2 MULTIPLE USES
+
+If you have multiple modules importing this module, the options
+from the first use win. Ugh. Overriding the options in every call
+is an ugly solution but it's the only currently available solution.
 
 =head1 LICENSE
 

@@ -506,8 +506,9 @@ BEGIN {
 if ($can_xpath) {
   # Set up some more stuff :
   require HTML::Tidy::Simple;
-  HTML::Tidy::Simple->import();
+  HTML::Tidy::Simple->import( namespace => HTML::Tidy );
   $tidy = HTML::Tidy::Simple->new();
+
   #$tidy = HTML::Tidy::Document->new();
   #$tidy->Create();
   #$tidy->OptSetBool( &HTML::Tidy::TidyXhtmlOut(), 1);
