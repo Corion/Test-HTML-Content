@@ -29,8 +29,8 @@ test_fail(+6);
 test_diag("Expected to find at least one <a> tag(s) matching",
           "  href = http://www.perl.com",
           "Got",
-          "  <a href='http://www.foo.com'>",
-          "  <a href='index.html'>");
+          '  <a href="http://www.foo.com">foo</a>',
+          '  <a href="index.html">Home</a>');
 link_ok("<a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",
         "http://www.perl.com","Link failure (two links that don't match)");
 test_test("Finding no link returns all other links");
@@ -40,8 +40,8 @@ test_fail(+6);
 test_diag("Expected to find no <a> tag(s) matching",
           "  href = (?-xism:.)",
           "Got",
-          "  <a href='http://www.foo.com'>",
-          "  <a href='index.html'>");
+          '  <a href="http://www.foo.com">foo</a>',
+          '  <a href="index.html">Home</a>');
 no_link("<a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",
         qr".","Link failure (two links shouldn't exist do)");
 test_test("Finding a link where one should be returns all other links");
@@ -51,8 +51,8 @@ test_fail(+6);
 test_diag("Expected to find exactly 3 <a> tag(s) matching",
           "  href = (?-xism:.)",
           "Got",
-          "  <a href='http://www.foo.com'>",
-          "  <a href='index.html'>");
+          '  <a href="http://www.foo.com">foo</a>',
+          '  <a href="index.html">Home</a>');
 link_count("<a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",qr".",3,"Link failure (too few links)");
 test_test("Diagnosing too few links works");
 
@@ -61,9 +61,9 @@ test_fail(+8);
 test_diag("Expected to find exactly 3 <a> tag(s) matching",
           "  href = (?-xism:.)",
           "Got",
-          "  <a href='http://www.bar.com'>",
-          "  <a href='http://www.dot.com'>",
-          "  <a href='http://www.foo.com'>",
-          "  <a href='index.html'>");
+          '  <a href="http://www.bar.com">bar</a>',
+          '  <a href="http://www.dot.com">.</a>',
+          '  <a href="http://www.foo.com">foo</a>',
+          '  <a href="index.html">Home</a>');
 link_count("<a href='http://www.bar.com'>bar</a><a href='http://www.dot.com'>.</a><a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",qr".",3,"Link failure (too many links)");
 test_test("Diagnosing too many links works");

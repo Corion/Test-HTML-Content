@@ -1,16 +1,18 @@
 # Test script to test the failure modes of Test::HTML::Content
 use Test::More;
 
-eval {
-  require Test::Builder::Tester;
-  Test::Builder::Tester->import;
+BEGIN {
+  eval {
+    require Test::Builder::Tester;
+    Test::Builder::Tester->import;
+  };
+
+  if ($@) {
+    plan skip_all => "Test::Builder::Tester required for testing error messages";
+  }
+
+  plan tests => 6;
 };
-
-if ($@) {
-  plan skip_all => "Test::Builder::Tester required for testing error messages";
-}
-
-plan tests => 6;
 
 use_ok('Test::HTML::Content');
 
@@ -67,4 +69,3 @@ test_diag("Expected to find exactly 3 <a> tag(s) matching",
           "  <a href='index.html'>");
 link_count("<a href='http://www.bar.com'>bar</a><a href='http://www.dot.com'>.</a><a href='http://www.foo.com'>foo</a><a href='index.html'>Home</a>",qr".",3,"Link failure (too many links)");
 test_test("Diagnosing too many links works");
-

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 31;
+use Test::More tests => 33;
 
 use_ok('Test::HTML::Content');
 
@@ -19,8 +19,8 @@ tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
     "a",{}, "No attributes");
 tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
     "a",undef, "Undef attributes");
-#tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
-#    "a", "Forgotten attributes");
+tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
+    "a", "Forgotten attributes");
 tag_count('<html><A href="http://www.perl.com">Title</A></html>',
     "a",{href => "http://www.perl.com" },1, "Single attribute gets counted once");
 tag_ok('<html><A href="http://www.perl.com" alt=\'click here!\'>Title</A></html>',
@@ -32,6 +32,8 @@ tag_ok('<html><A href="http://www.perl.com">Title</A><A href="http://www.perl.co
 tag_count('<html><A href="http://www.perl.com">Title</A><A href="http://www.perl.com">Icon</A></html>',
     "a",{href => "http://www.perl.com" },2, "Tags that appear twice get reported twice");
 
+no_tag('<html><A href="http://www.perl.com.example.com">Title</A></html>',
+    "a",{href => "http://www.perl.com" }, "Plain strings get matched exactly");
 tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
     "a",{href => qr"^http://.*$" }, "Regular expressions for attributes");
 tag_ok('<html><A href="http://www.perl.com" name="Perl">Title</A></html>',
@@ -61,9 +63,9 @@ no_tag('<html><A href="http://www.purl.com">Title</A></html>',
 tag_count('<html><A href="http://www.purl.com">Title</A></html>',
     "a",{href => "http://www.perl.com" },0,"Tag with different attribute value is reported zero times");
 
-no_tag('<html><!-- <A href="http://www.purl.com">Title</A></html>',
+no_tag('<html><!-- <A href="http://www.purl.com">Title</A></html> -->',
     "a",{href => "http://www.perl.com" }, "Tag within a comment is not found");
-tag_count('<html><!-- <A href="http://www.purl.com">Title</A></html>',
+tag_count('<html><!-- <A href="http://www.purl.com">Title</A></html> -->',
     "a",{href => "http://www.perl.com" }, 0, "Tag within a comment is reported zero times");
 
 no_tag('<html><!-- <A href="http://www.perl.com"> -->Title</A></html>',
