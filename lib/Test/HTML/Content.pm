@@ -244,37 +244,16 @@ sub __match {
   return $result;
 };
 
-{
-  sub XML::XPath::Function::matches {
-    my $self = shift;
-    my ($node, @params) = @_;
-    die "starts-with: incorrect number of params\n" unless @params == 2;
-    my $re = $params[1]->string_value;
-    return($params[0]->string_value =~ /$re/)
-      ? XML::XPath::Boolean->True
-      : XML::XPath::Boolean->False;
-  }
-
-  sub XML::XPath::Function::comment {
-    my $self = shift;
-    my ($node, @params) = @_;
-    die "starts-with: incorrect number of params\n" unless @params == 1;
-    my $re = $params[1]->string_value;
-    return(ref $node =~ /Comment$/)
-      ? XML::XPath::Boolean->True
-      : XML::XPath::Boolean->False;
-  };
-};
-
 sub __get_node_tree {
   my ($userHTML,$query) = @_;
 
   croak "No HTML given" unless defined $userHTML;
   croak "No query given" unless defined $query;
 
-  $tidy->ParseString($userHTML);
-  $tidy->CleanAndRepair();
-  my ($stat,$HTML) = $tidy->SaveString();
+  #$tidy->ParseString($userHTML);
+  #$tidy->CleanAndRepair();
+  #my ($stat,$HTML) = $tidy->SaveString();
+  my $HTML = $tidy->tidy($userHTML);
 
   my ($tree,$result);
   if ($HTML !~ m!\A\s*\Z!ms) {
@@ -517,7 +496,8 @@ BEGIN {
   # Load the no-XML-variant if our prerequisites aren't there :
   eval q{
     require XML::XPath;
-    use HTML::Tidy;
+    #use HTML::Tidy;
+    use HTML::Tidy::Simple;
   };
   $can_xpath = $@ eq '';
 };
@@ -525,16 +505,23 @@ BEGIN {
 # And install our plain handlers if we have to :
 if ($can_xpath) {
   # Set up some more stuff :
-  $tidy = HTML::Tidy::Document->new();
-  $tidy->Create();
-  $tidy->OptSetBool( &HTML::Tidy::TidyXhtmlOut(), 1);
-  $tidy->OptSetBool( &HTML::Tidy::TidyIndentContent(), 0 );
-  $tidy->OptSetBool( &HTML::Tidy::TidyMark(), 0 );
-  $tidy->OptSetBool( &HTML::Tidy::TidyBodyOnly(), 0 );
-  $tidy->OptSetValue( &HTML::Tidy::TidyForceOutput(), 0 );
-  $tidy->OptSetValue( &HTML::Tidy::TidyIndentSpaces(), 0 );
-  $tidy->OptSetValue( &HTML::Tidy::TidyWrapLen(), 32000 );
-  $tidy->SetErrorFile( File::Spec->devnull );
+  require HTML::Tidy::Simple;
+  HTML::Tidy::Simple->import();
+  $tidy = HTML::Tidy::Simple->new();
+  #$tidy = HTML::Tidy::Document->new();
+  #$tidy->Create();
+  #$tidy->OptSetBool( &HTML::Tidy::TidyXhtmlOut(), 1);
+  #$tidy->OptSetBool( &HTML::Tidy::TidyIndentContent(), 0 );
+  #$tidy->OptSetBool( &HTML::Tidy::TidyMark(), 0 );
+  #$tidy->OptSetBool( &HTML::Tidy::TidyBodyOnly(), 0 );
+  #$tidy->OptSetValue( &HTML::Tidy::TidyForceOutput(), 0 );
+  #$tidy->OptSetValue( &HTML::Tidy::TidyIndentSpaces(), 0 );
+  #$tidy->OptSetValue( &HTML::Tidy::TidyWrapLen(), 32000 );
+  #$tidy->SetErrorFile( File::Spec->devnull );
+
+  # And patch our extensions into XML::XPath::Function
+  require Test::HTML::Content::XPathExtensions;
+  Test::HTML::Content::XPathExtensions->import();
 } else {
   require Test::HTML::Content::NoXPath;
   Test::HTML::Content::NoXPath->install;
@@ -614,7 +601,9 @@ content of tags. The next generation will most likely be based on
 HTML::TreeBuilder to alleviate that situation, or implement
 its own scheme.
 
-The used HTML parser is HTML::TokeParser.
+The used HTML parser is HTML::TokeParser, the used XPath module
+is XML::XPath in combination with HTML Tidy through either
+the HTML::Tidy module or the C<tidy> program.
 
 The test functionality is derived from L<Test::Builder>, and the export
 behaviour is the same. When you use Test::HTML::Content, a set of
@@ -636,6 +625,17 @@ The module reparses the HTML string every time a test function is called.
 This will make running many tests over the same, large HTML stream relatively
 slow. I plan to add a simple minded caching mechanism that keeps the most
 recent HTML stream in a cache.
+
+=head2 CAVEATS
+
+The test output differs between XPath and HTML parsing, because XML::XPath
+delivers the complete node including the content, where my HTML parser only
+delivers the start tag. So don't make your tests depend on the _exact_
+output of my tests. It was a pain to do so in my test scripts for this module
+and if you really want to, take a look at the included test scripts.
+
+The title functions C<title_ok> and C<no_title> rely on the XPath functionality
+and will skip if XML::XPath or HTML::Tidy are unavailable.
 
 =head2 BUGS
 
@@ -659,21 +659,7 @@ My things on the todo list for this module. Patches are welcome !
 
 =item * Possibly diag() the row/line number for failing tests
 
-=item * Create a function (and a syntax) to inspect tag text contents without
-reimplementing XSLT. ?possibly a special attribute? Will not happen
-until HTML::TreeBuilder is used
-
-=item * Consider HTML::TableExtractor for easy parsing of tables into arrays
-and then subsequent testing of the arrays
-
-=item * Find syntax for easily specifying relationships between tags
-(see XSLT comment above)
-
 =item * Consider HTML::TreeBuilder for more advanced structural checks
-
-=item * Have a way of declaring "the link that shows 'foo' points to http://www.foo.com/"
-(which is, after all, a way to check a tags contents, and thus won't happen
-until HTML::TreeBuilder is used)
 
 =item * Allow RE instead of plain strings in the functions (for tags themselves). This
 one is most likely useless.
