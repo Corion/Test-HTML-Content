@@ -30,7 +30,6 @@ t/99-manifest.t
 t/99-Pod.t
 t/99-todo.t
 t/99-unix-text.t
-t/embedded-HTML-Tidy-Simple.t
 t/embedded-Test-HTML-Content-NoXPath.t
 t/embedded-Test-HTML-Content-XPathExtensions.t
 t/embedded-Test-HTML-Content.t
