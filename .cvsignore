@@ -1,6 +1,6 @@
 blib
 Makefile
-CGI-Wiki-Simple-*
+Test-HTML-Content-*
 *.old
 *.tar.gz
 pm_to_blib
