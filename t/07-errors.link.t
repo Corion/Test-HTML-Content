@@ -11,7 +11,7 @@ BEGIN {
     plan skip_all => "Test::Builder::Tester required for testing error messages";
   }
 
-  plan tests => 6;
+  plan tests => 1+5*2;
 };
 
 use_ok('Test::HTML::Content');
