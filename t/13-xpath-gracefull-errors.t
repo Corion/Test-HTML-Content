@@ -17,11 +17,11 @@ use_ok('Test::HTML::Content');
 SKIP: {
   { no warnings 'once';
     $Test::HTML::Content::can_xpath
-      or skip "XML::XPath and HTML::Tidy required", 5;
+      or skip "XML::XPath and HTML::Tidy required", 3;
   };
 
   my ($tree,$result,$seen);
-  
+
   eval {
     ($result,$seen) = Test::HTML::Content::__count_comments("<!-- hidden massage --><!-- hidden massage --><!-- hidden massage -->", "hidden message");
   };
