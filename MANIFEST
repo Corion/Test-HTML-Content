@@ -5,6 +5,8 @@ lib/Test/HTML/Content/NoXPath.pm
 Makefile.PL
 MANIFEST
 t/00-prerequisites.t
+t/01-fallback-html-tidy.t
+t/01-fallback-xpath.t
 t/01-internal-api.t
 t/02-tags.t
 t/03-links.t
@@ -18,6 +20,7 @@ t/09-errors.declaration-xpath.t
 t/10-errors.text.t
 t/11-errors.tags.t
 t/12-title.t
+t/12-title-fallback.t
 t/13-xpath-gracefull-errors.t
 t/99-Pod.t
 t/embedded-Test-HTML-Content.t

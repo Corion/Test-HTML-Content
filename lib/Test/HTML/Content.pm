@@ -79,7 +79,7 @@ sub __count_comments {
 
   my $result = 0;
   my $seen = [];
-  
+
   foreach my $node ($tree->get_nodelist) {
     my $content = XML::XPath::XMLParser::as_string($node);
     $content =~ s/\A<!--(.*?)-->\Z/$1/gsm;
@@ -268,10 +268,10 @@ sub __match {
 
 sub __get_node_tree {
   my ($userHTML,$query) = @_;
-  
+
   croak "No HTML given" unless defined $userHTML;
   croak "No query given" unless defined $query;
-  
+
   $tidy->ParseString($userHTML);
   $tidy->CleanAndRepair();
   my ($stat,$HTML) = $tidy->SaveString();
@@ -292,9 +292,9 @@ sub __get_node_tree {
       };
     };
     undef $tree if $@;
-    
+
     if ($tree) {
-      eval { 
+      eval {
         $result = $tree->find($query);
         unless ($result) {
           $result = {};
@@ -392,8 +392,13 @@ sub tag_ok {
   my $result;
   my ($count,$seen) = __count_tags($HTML,$tag,$attrref);
   if (defined $count) {
-    $result = $Test->ok( $count > 0, $name );
-    __tag_diag($tag,"at least one",$attrref,$seen) unless ($result);
+    if ($count eq 'skip') {
+      $Test->skip( $seen );
+      $result = 'skipped';
+    } else {
+      $result = $Test->ok( $count > 0, $name );
+      __tag_diag($tag,"at least one",$attrref,$seen) unless ($result);
+    };
   } else {
     local $Test::Builder::Level = $Test::Builder::Level +1;
     __invalid_html($HTML,$name);
@@ -406,9 +411,14 @@ sub no_tag {
   my ($count,$seen) = __count_tags($HTML,$tag,$attrref);
   my $result;
   if (defined $count) {
-    $result = $count == 0;
-    $Test->ok($result,$name);
-    __tag_diag($tag,"no",$attrref,$seen) unless ($result);
+    if ($count eq 'skip') {
+      $Test->skip( $seen );
+      $result = 'skipped';
+    } else {
+      $result = $count == 0;
+      $Test->ok($result,$name);
+      __tag_diag($tag,"no",$attrref,$seen) unless ($result);
+    };
   } else {
     local $Test::Builder::Level = $Test::Builder::Level +1;
     __invalid_html($HTML,$name);
@@ -505,16 +515,16 @@ sub no_declaration {
 
 BEGIN {
   # Load the no-XML-variant if our prerequisites aren't there :
-  eval q{ 
+  eval q{
     require XML::XPath;
     use HTML::Tidy;
   };
   $can_xpath = $@ eq '';
 };
-    
+
 # And install our plain handlers if we have to :
 if ($can_xpath) {
-  # Set up some more stuff :    
+  # Set up some more stuff :
   $tidy = HTML::Tidy::Document->new();
   $tidy->Create();
   $tidy->OptSetBool( &HTML::Tidy::TidyXhtmlOut(), 1);
