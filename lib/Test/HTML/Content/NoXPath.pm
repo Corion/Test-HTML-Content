@@ -122,7 +122,7 @@ sub __count_tags {
 
   my $p = HTML::TokeParser->new(\$HTML);
   my $token;
-  my $seen = [];
+  my @seen;
   while ($token = $p->get_token) {
     my ($type,$currtag,$currattr,$attrseq,$origtext) = @$token;
     if ($type eq "S" && $tag eq $currtag) {
@@ -134,11 +134,11 @@ sub __count_tags {
       };
       $result += $complete;
       # Now munge the thing to resemble what the XPath variant returns :
-      push @$seen, $token->[4];
+      push @seen, $token->[4];
     };
   };
 
-  return $result,$seen;
+  return $result,\@seen;
 };
 
 sub __match_declaration {
@@ -167,6 +167,10 @@ sub __count_declarations {
   };
 
   return $result, $seen;
+};
+
+sub import {
+  goto &install;
 };
 
 sub install {

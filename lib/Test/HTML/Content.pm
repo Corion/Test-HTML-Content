@@ -549,25 +549,26 @@ sub no_xpath {
 
 sub install_xpath {
   require XML::XPath;
+  XML::XPath->import();
   $can_xpath = 'XML::XPath';
 };
 
 sub install_libxml {
+  local $^W;
   require XML::LibXML;
+  XML::LibXML->import();
   $can_xpath = 'XML::LibXML';
 };
 
 # And install our plain handlers if we have to :
 sub install_pureperl {
-  if (! $can_xpath) {
-    require Test::HTML::Content::NoXPath;
-    Test::HTML::Content::NoXPath->install;
-  };
+  require Test::HTML::Content::NoXPath;
+  Test::HTML::Content::NoXPath->import;
 };
 
 BEGIN {
   # Load the XML-variant if our prerequisites are there :
-  eval { install_libxml }
+     eval { install_libxml }
   or eval { install_xpath }
   or install_pureperl;
 };

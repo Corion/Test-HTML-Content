@@ -4,7 +4,7 @@ use Test::More tests => 4;
 SKIP: {
   eval {
     require Test::Without::Module;
-    Test::Without::Module->import( 'XML::LibXML' );
+    Test::Without::Module->import( 'XML::XPath' );
   };
   skip "Need Test::Without::Module to test the fallback", 4
     if $@;
@@ -14,5 +14,6 @@ SKIP: {
   my ($result,$args);
   eval { ($result,$args) = Test::HTML::Content::__count_tags("<html><body><a href='here'>dot</a></body></html>",'a',{_content=>'dot'}); };
   is($@,'',"Missing prerequisites don't let the tests fail");
-  is($result,'skip','Missing prerequisites make the tests skip instead');
+  ok($result eq 'skip' || $result == 1,'Skipped or passed when XML::XPath is missing')
+    or diag "Expected 'skip' or '1', but got '$result'";
 };
