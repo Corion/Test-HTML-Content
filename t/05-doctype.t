@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 1+4*2;
+use lib 't';
+use testlib;
 
-use_ok('Test::HTML::Content');
+sub run {
+  use_ok('Test::HTML::Content');
 
-sub run_tests {
   # Tests for comments
   has_declaration('<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
   ', 'DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"', "Doctype 3.2");
@@ -20,7 +21,5 @@ sub run_tests {
 # Borked javadoc HTML DOCTYPE ...
 #<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN""http://www.w3.org/TR/REC-html40/loose.dtd>
 
-run_tests;
-require Test::HTML::Content::NoXPath;
-Test::HTML::Content::NoXPath->install;
-run_tests;
+runtests( 1+4, \&run );
+

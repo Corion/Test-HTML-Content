@@ -1,10 +1,9 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 1+5*2;
+use lib 't';
+use testlib;
 
-use_ok('Test::HTML::Content');
-
-sub run_tests {
+sub run {
   # Tests for links
   no_link('<html></html>','http://www.perl.com', "Simple non-existing link");
   no_link('<html>http://www.perl.com</html>',"http://www.perl.com", "Plain text gets not interpreted as link");
@@ -16,7 +15,4 @@ sub run_tests {
       'corion@somewhere.else', "Links are not found if commented out");
 };
 
-run_tests;
-require Test::HTML::Content::NoXPath;
-Test::HTML::Content::NoXPath->install;
-run_tests;
+runtests(5,\&run);

@@ -1,10 +1,9 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 1+32*2;
+use lib 't';
+use testlib;
 
-use_ok('Test::HTML::Content');
-
-sub run_tests {
+sub run {
   # Tests for tags
   tag_ok('<html><A href="http://www.perl.com">Title</A></html>',
       "a",{href => "http://www.perl.com" }, "Single attribute");
@@ -46,7 +45,7 @@ sub run_tests {
 
   tag_count('<html><A href="http://www.perl.com" name="Perl">Title</A><A href="http://www.perl.com">Another link</A></html>',
       "a",{href => "http://www.perl.com" },2, "Ignored tags");
-  tag_count('<html><A href="http://www.perl.com" name="Perl">Title</A><A href="http://www.perl.com">Another link</A></html>',
+  tag_count('<html><a href="http://www.perl.com" name="Perl">Title</a><a href="http://www.perl.com">Another link</a></html>',
       "a",{href => "http://www.perl.com", name => undef },1, "Absent tags");
 
   no_tag('<html><A hrf="http://www.perl.com">Title</A></html>',
@@ -85,7 +84,4 @@ sub run_tests {
       "p",{style => qr"ugly$" }, 2, "Tag attribute counting");
 };
 
-run_tests;
-require Test::HTML::Content::NoXPath;
-Test::HTML::Content::NoXPath->install;
-run_tests;
+runtests(32,\&run);

@@ -1,6 +1,6 @@
 use strict;
-use Test::More;
-use Test::HTML::Content( tests => 11*2 );
+use lib 't';
+use testlib;
 
 my $HTML = <<'HTML';
 <HTML><BODY>
@@ -64,7 +64,9 @@ This is a very long text.This is a very long text.This is a very lang text.This 
 HTML
 my $HTML2 = "<html>This is some text.<!-- and a comment --> And some more text. <p>And some other stuff</p></html>";
 
-sub run_tests {
+# use Test::HTML::Content;
+
+sub run {
   text_ok($HTML,qr"This is a very lang text."ism,"REs for text work");
   text_count($HTML,qr"This is a very lang text.",1,"Counting text elements works");
   no_text($HTML, "This is a very long test","Negation works as well");
@@ -82,7 +84,4 @@ sub run_tests {
   text_ok("A simple test",qr"A simple test","Text is not broken up");
 };
 
-run_tests;
-require Test::HTML::Content::NoXPath;
-Test::HTML::Content::NoXPath->install;
-run_tests;
+runtests( 11, \&run );

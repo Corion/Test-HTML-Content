@@ -1,5 +1,7 @@
 # Test script to test the failure modes of Test::HTML::Content
 use Test::More;
+use lib 't';
+use testlib;
 
 BEGIN {
   eval {
@@ -10,13 +12,9 @@ BEGIN {
   if ($@) {
     plan skip_all => "Test::Builder::Tester required for testing error messages";
   }
-
-  plan tests => 1+5*2;
 };
 
-BEGIN{use_ok('Test::HTML::Content');};
-
-sub run_tests {
+sub run {
   # Test that each exported function fails as documented
   test_out("not ok 1 - Link failure (no links)");
   test_fail(+8);
@@ -76,7 +74,7 @@ sub run_tests {
               "Got",
               '  <a href="http://www.foo.com">foo</a>',
               '  <a href="index.html">Home</a>');
-  } else {  
+  } else {
     test_diag("Expected to find exactly 3 <a> tag(s) matching",
               "  href = (?-xism:.)",
               "Got",
@@ -109,7 +107,4 @@ sub run_tests {
   test_test("Diagnosing too many links works");
 };
 
-run_tests;
-require Test::HTML::Content::NoXPath;
-Test::HTML::Content::NoXPath->install;
-run_tests;
+runtests( 5,\&run);

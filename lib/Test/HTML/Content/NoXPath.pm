@@ -114,7 +114,7 @@ sub __match {
 sub __count_tags {
   my ($HTML,$tag,$attrref) = @_;
   $attrref = {} unless defined $attrref;
-  return ('skip','XML::XPath or HTML::Tidy not loaded')
+  return ('skip','XML::LibXML or XML::XPath not loaded')
     if exists $attrref->{_content};
 
   my $result = 0;
@@ -191,9 +191,9 @@ Test::HTML::Content::NoXPath - HTML::TokeParser fallback for Test::HTML::Content
 
   # This module is implicitly loaded by Test::HTML::Content
   # if XML::XPath or HTML::Tidy::Simple are unavailable.
-  
+
 =for example end
-  
+
 =head1 DESCRIPTION
 
 This is the module that gets loaded when Test::HTML::Content

@@ -78,6 +78,8 @@ http://saxon.sourceforge.net/saxon7.3.1/functions.html
 =item *
 http://www.w3.org/TR/xquery-operators/
 
+=back
+
 =head2 EXPORT
 
 Nothing. It stomps over the XML::XPath::Function namespace.

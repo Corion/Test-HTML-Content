@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 1+15*2;
+use lib 't';
+use testlib;
 
-use_ok('Test::HTML::Content');
-
-sub run_tests {
+sub run {
+  use_ok('Test::HTML::Content');
   # Tests for comments
   comment_ok('<html>Mail me at <!-- (c) 2002 corion@cpan.org -->some address</html>',
       '(c) 2002 corion@cpan.org', "Comments are found if there");
@@ -37,7 +37,4 @@ sub run_tests {
   no_comment('<html>Mail me at <a href="corion@cpan.org">foo<!-- corion@[c]pan.org --><!-- nospam@cpan.org --></a> some address</html>', qr'corion\@[c]pan\.org', "RE-Comments not stringified");
 };
 
-run_tests;
-require Test::HTML::Content::NoXPath;
-Test::HTML::Content::NoXPath->install;
-run_tests;
+runtests( 1+15, \&run );

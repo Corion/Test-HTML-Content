@@ -1,16 +1,16 @@
 #!/usr/bin/perl -w
 use strict;
 use Test::More;
+use lib 't';
+use testlib;
 
 # This test file tests the internal routines of Test::HTML.
 # The internal routines aren't really intended for public
 # consumption, but the tests you'll find in here should
 # document the behaviour enough ...
 
-# First, check the prerequisites
-use_ok('Test::HTML::Content');
-
 my (%cases_2,%cases_3);
+my $count;
 BEGIN {
     $cases_2{__dwim_compare} = [
       "foo" => "bar" => 0,
@@ -75,11 +75,9 @@ BEGIN {
 
     ];
 
-  my $count = 1+ (18 + 24 + 12)*2;
-  $count += (@{$cases_2{$_}} / 3)*2 for (keys %cases_2);
-  $count += (@{$cases_3{$_}} / 4)*2 for (keys %cases_3);
-
-  plan( tests => $count );
+  $count = (18 + 24 + 12);
+  $count += (@{$cases_2{$_}} / 3) for (keys %cases_2);
+  $count += (@{$cases_3{$_}} / 4) for (keys %cases_3);
 };
 
 sub run_case {
@@ -99,7 +97,7 @@ sub run_case {
   };
 };
 
-sub run_tests {
+sub run {
   run_case( 3, \%cases_2 );
   run_case( 4, \%cases_3 );
 
@@ -212,7 +210,5 @@ sub run_tests {
   is(@$seen,1,"Counting possible candidates 6");
 };
 
-run_tests;
-require Test::HTML::Content::NoXPath;
-Test::HTML::Content::NoXPath->install;
-run_tests;
+runtests( $count, \&run );
+
