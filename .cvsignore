@@ -1,0 +1,7 @@
+blib
+Makefile
+CGI-Wiki-Simple-*
+*.old
+*.tar.gz
+pm_to_blib
+.lwpcookies
