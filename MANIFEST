@@ -34,3 +34,4 @@ t/embedded-Test-HTML-Content-NoXPath.t
 t/embedded-Test-HTML-Content-XPathExtensions.t
 t/embedded-Test-HTML-Content.t
 t/testlib.pm
+.gitignore

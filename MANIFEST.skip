@@ -21,3 +21,4 @@ _uu$
 ^Test-HTML-Content-.*/
 .*\.db$
 ^cvstest$
+^MYMETA.*
