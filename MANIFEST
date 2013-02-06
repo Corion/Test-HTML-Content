@@ -1,3 +1,4 @@
+.gitignore
 Changes
 lib/Test/HTML/Content.pm
 lib/Test/HTML/Content/NoXPath.pm
@@ -12,6 +13,7 @@ t/01-fallback-libxml.t
 t/01-fallback-pureperl.t
 t/01-fallback-xpath.t
 t/01-internal-api.t
+t/01-libxml-xpath-abstraction.t
 t/01-xpath-query-builder.t
 t/02-tags.t
 t/03-links.t
@@ -26,12 +28,13 @@ t/10-errors.text.t
 t/12-title-fallback.t
 t/12-title.t
 t/13-xpath-gracefull-errors.t
+t/99-changes.t
 t/99-manifest.t
 t/99-Pod.t
 t/99-todo.t
 t/99-unix-text.t
+t/99-versions.t
 t/embedded-Test-HTML-Content-NoXPath.t
 t/embedded-Test-HTML-Content-XPathExtensions.t
 t/embedded-Test-HTML-Content.t
 t/testlib.pm
-.gitignore
