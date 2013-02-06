@@ -12,7 +12,7 @@ release date is mentioned as well
 
 =cut
 
-my $module = 'Test-HTML-Content';
+my $module = 'Test::HTML::Content';
 
 (my $file = $module) =~ s!::!/!g;
 require "$file.pm";
