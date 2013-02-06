@@ -1,4 +1,4 @@
-Test::HTML::Content version 0.04
+Test::HTML::Content version 0.09
 =========================
 
 This module provides an easy way to test elements of 
@@ -23,4 +23,4 @@ COPYRIGHT AND LICENCE
 
 This library is free software; you can redistribute it and/or modify it under the same terms as Perl itself.
 
-Copyright (C) 2002 Max Maischein, corion@cpan.org
+Copyright (C) 2002-2013 Max Maischein, corion@cpan.org
