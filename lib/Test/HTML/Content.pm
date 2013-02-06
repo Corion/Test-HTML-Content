@@ -69,6 +69,12 @@ sub __node_content {
   if ($can_xpath eq 'XML::LibXML') { return $node->toString };
 };
 
+sub __text_content {
+  my $node = shift;
+  if ($can_xpath eq 'XML::XPath') { return $node->string_value };
+  if ($can_xpath eq 'XML::LibXML') { return $node->textContent };
+}
+
 sub __match_comment {
   my ($text,$template) = @_;
   $text =~ s/^<!--(.*?)-->$/$1/sm unless $HTML_PARSER_StripsTags;
@@ -276,7 +282,8 @@ sub __get_node_content {
   my ($node,$name) = @_;
 
   if ($name eq '_content') {
-    return $node->textContent()
+    return __text_content( $node )
+#    return $node->textContent()
   } else {
     return $node->getAttribute($name)
   };

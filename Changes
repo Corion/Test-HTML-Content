@@ -1,11 +1,12 @@
 Revision history for Perl extension Test::HTML::Content.
 
 0.09 20130206
-  - Apply 
+  - Apply patch from RT 70099, by gregor herrmann and dom
     This fixes bugs in the test suite
       <http://bugs.debian.org/cgi-bin /bugreport.cgi?bug=636520>
       and RT 70099
-      
+  - Apply patch from RT 42072 by gyles19@visi.com
+    This fixes the crash when using XML::XPath instead of XML::LibXML
 
 0.08 20081112
     ???
