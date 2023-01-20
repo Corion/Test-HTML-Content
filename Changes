@@ -1,5 +1,12 @@
 Revision history for Perl extension Test::HTML::Content.
 
+0.10 20230120
+    - Add a XML::LibXML version number if we find it installed
+      This is to hunt down spurious test failures with an unknown version
+      of XML::LibXML
+    - Upgrade package/distribution infrastructure
+    - No code changes, no need to upgrade
+
 0.09 20130206
   - Apply patch from RT 70099, by gregor herrmann and dom
     This fixes bugs in the test suite
@@ -16,10 +23,10 @@ Revision history for Perl extension Test::HTML::Content.
     t/09-errors.xpath.t was missing a SKIP: label
   - still no resolution on the other reported errors, as XML::XPath "works"
     on my Win32 machine, but dosen't work elsewhere :-(
-    
+
     Most of the failures seem to be failures due to different text output
     of the tests:
-    
+
     # #   <p foo="bar" />
     vs.
     # #   <p foo="bar"/>
