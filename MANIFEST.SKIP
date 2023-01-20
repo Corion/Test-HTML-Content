@@ -1,3 +1,4 @@
+^\.prove
 ^blib/
 ^Makefile$
 ^Makefile\.old$
