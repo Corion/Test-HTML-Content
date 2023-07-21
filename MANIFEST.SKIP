@@ -1,4 +1,5 @@
 ^\.prove
+^\.github
 ^blib/
 ^Makefile$
 ^Makefile\.old$
