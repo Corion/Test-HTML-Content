@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::HTML::Content.
 
+0.11 2023-07-21
+    - Various test suite updates, no code changes, no need to upgrade
+
 0.10 2023-01-20
     - Add a XML::LibXML version number if we find it installed
       This is to hunt down spurious test failures with an unknown version
