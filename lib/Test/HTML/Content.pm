@@ -355,7 +355,11 @@ sub __tag_diag {
     for sort keys %$attrs;
   if (@$found) {
     $Test->diag("Got");
-    $Test->diag("  " . $_) for @$found;
+    for my $tag (@$found) {
+        my $vis = "$tag";
+        $vis =~ s!\s*/>\s*$!/>!; # canonicalize between XML::Parser and XML::LibXML
+        $Test->diag("  " . $vis);
+    };
   } else {
     $Test->diag("Got none");
   };
@@ -512,7 +516,11 @@ sub __xpath_diag {
   my $phrase = "Expected to find $num nodes matching on '$query'";
   if (@$found) {
     $Test->diag("Got");
-    $Test->diag("  $_") for @$found;
+    for my $tag (@$found) {
+        my $vis = "$tag";
+        $vis =~ s!\s*/>$!/>!; # canonicalize between XML::Parser and XML::LibXML
+        $Test->diag("  $vis");
+    }
   } else {
     $Test->diag("Got none");
   };
