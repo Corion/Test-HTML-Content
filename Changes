@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::HTML::Content.
 
+0.12 2023-07-23
+    - Fix test output/diagnostics between XML::LibXML and XML::Parser
+
 0.11 2023-07-21
     - Various test suite updates, no code changes, no need to upgrade
 
